@@ -3,24 +3,23 @@ package service
 import (
 	"fmt"
 
-	"github.com/cloudfoundry-community/go-cfenv"
-	"github.com/cloudnativego/cf-tools"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
+	"github.com/hudl/fargo"
 	"github.com/unrolled/render"
 )
 
-// NewServerFromCFEnv decides the URL to use for a webclient
-func NewServerFromCFEnv(appEnv *cfenv.App) *negroni.Negroni {
+func NewServer(connection *fargo.EurekaConnection) *negroni.Negroni {
 	webClient := fulfillmentWebClient{
 		rootURL: "http://localhost:3001/skus",
 	}
 
-	val, err := cftools.GetVCAPServiceProperty("backing-fulfill", "url", appEnv)
+	app, err := connection.GetApp("BACKING_FULFILLMENT")
 	if err == nil {
-		webClient.rootURL = val
+		instance := app.Instances[0]
+		webClient.rootURL = instance.HostName + "/skus"
 	} else {
-		fmt.Printf("Failed to get URL property from bound service: %v\n", err)
+		fmt.Printf("Failed to get registered URL from Eureka: %v\n", err)
 	}
 	fmt.Printf("Using the following URL for fulfillment backing service: %s\n", webClient.rootURL)
 

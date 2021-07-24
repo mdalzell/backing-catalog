@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/cloudfoundry-community/go-cfenv"
 	"github.com/hudl/fargo"
 	"github.com/mdalzell/backing-catalog/service"
 )
@@ -24,7 +23,7 @@ func main() {
 	c := fargo.NewConn(eurekaUrl)
 
 	i := fargo.Instance{
-		HostName:         "i-6542",
+		HostName:         "http://127.0.0.10:3000",
 		Port:             3000,
 		App:              "BACKING_CATALOG",
 		IPAddr:           "127.0.0.10",
@@ -41,11 +40,6 @@ func main() {
 		fmt.Println("Registered App:", key, " First Host Name:", theApp.Instances[0].HostName)
 	}
 
-	appEnv, err := cfenv.Current()
-	if err != nil {
-		fmt.Println("CF Environment not detected.")
-	}
-
-	server := service.NewServerFromCFEnv(appEnv)
+	server := service.NewServer(&c)
 	server.Run(":" + port)
 }
